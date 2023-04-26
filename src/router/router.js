@@ -15,10 +15,11 @@ router.post("/auth/register", async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
 
-  if (!username || !password) return res.sendStatus(400);
+  if (!username || !password)
+    return res.status(400).send({ msg: "Missing user details" });
 
   if (username.includes(" ") || password.includes(" "))
-    return res.sendStatus(400);
+    return res.status(400).send({ msg: "Missing user details" });
 
   password = await bcrypt.hash(password, 10);
 
@@ -33,7 +34,8 @@ router.post("/auth/register", async (req, res) => {
     { upsert: true }
   );
 
-  if (result.upsertedCount != 1) return res.sendStatus(409);
+  if (result.upsertedCount != 1)
+    return res.status(409).send({ msg: "User already exist" });
 
   res.status(201).send(result);
 });
@@ -48,22 +50,32 @@ router.post("/auth/login", async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
 
-  if (!username || !password) return res.sendStatus(400);
+  if (!username || !password)
+    return res.status(400).send({ msg: "Missing user details" });
 
   if (username.includes(" ") || password.includes(" "))
-    return res.sendStatus(422);
+    return res
+      .status(422)
+      .send({ msg: "User details may not include blank space" });
 
   let checkUserExists = await dbConnection
     .collection("users")
     .findOne({ username });
 
-  if (!checkUserExists) return res.sendStatus(400);
+  if (!checkUserExists)
+    return res.status(400).send({ msg: "User don't exist" });
 
   let comparePass = await bcrypt.compare(password, checkUserExists.password);
 
-  if (!comparePass) return res.sendStatus(400);
+  if (!comparePass) return res.status(400).send({ msg: "Incorrect password" });
 
   let token = jwt.sign(username, "superSecret");
 
   res.send({ jwt: token });
+});
+
+router.get("/food", async (req, res) => {
+  let result = await dbConnection.collection("kraken_inn").find().toArray();
+
+  res.send(result);
 });
