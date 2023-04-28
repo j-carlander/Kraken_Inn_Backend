@@ -1,80 +1,19 @@
 import express from "express";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+
 import { dbConnection } from "../database/database.js";
 import { jwtFilter } from "../filter/jwtFilter.js";
+import userServices from "../services/userServices.js";
+import profileServices from "../services/profileServices.js";
 
 export const router = express.Router();
 
-/** Route to register a new user
- * checks so that username and password is filled in and correctly inserted without blank space
- * checks so that the username isn't taken
- * hashes the password with bcrypt
- * Inserts the user into the database
- */
-router.post("/auth/register", async (req, res) => {
-  let username = req.body.username;
-  let password = req.body.password;
+/* Route to register a new user */
+router.post("/auth/register", userServices.register);
 
-  if (!username || !password)
-    return res.status(400).send({ msg: "Missing user details" });
+/* Route to log in a user */
+router.post("/auth/login", userServices.login);
 
-  if (username.includes(" ") || password.includes(" "))
-    return res.status(400).send({ msg: "Missing user details" });
-
-  password = await bcrypt.hash(password, 10);
-
-  let result = await dbConnection.collection("users").updateOne(
-    { username },
-    {
-      $setOnInsert: {
-        username,
-        password,
-      },
-    },
-    { upsert: true }
-  );
-
-  if (result.upsertedCount != 1)
-    return res.status(409).send({ msg: "User already exist" });
-
-  res.status(201).send(result);
-});
-
-/** Route to log in a user
- * checks so that username and password is filled in and correctly inserted without blank space
- * checks so that the username exist
- * compares the password with the stored one using bcrypt
- * creates a jwt token and sends it with the response
- */
-router.post("/auth/login", async (req, res) => {
-  let username = req.body.username;
-  let password = req.body.password;
-
-  if (!username || !password)
-    return res.status(400).send({ msg: "Missing user details" });
-
-  if (username.includes(" ") || password.includes(" "))
-    return res
-      .status(422)
-      .send({ msg: "User details may not include blank space" });
-
-  let checkUserExists = await dbConnection
-    .collection("users")
-    .findOne({ username });
-
-  if (!checkUserExists)
-    return res.status(400).send({ msg: "User don't exist" });
-
-  let comparePass = await bcrypt.compare(password, checkUserExists.password);
-
-  if (!comparePass) return res.status(400).send({ msg: "Incorrect password" });
-
-  let token = jwt.sign(username, "superSecret");
-
-  res.send({ jwt: token, username: username });
-});
-
+/* Add JWT filter to all routes below this point */
 router.use(jwtFilter);
 
 router.get("/food", async (req, res) => {
@@ -82,3 +21,17 @@ router.get("/food", async (req, res) => {
 
   res.send(result);
 });
+
+router.get("/user/debitcard", profileServices.getDebitCard);
+
+router.get("/user/address", profileServices.getAddress);
+
+router.get("/user/balance", profileServices.getBalance);
+
+router.get("/user/balance", profileServices.getProfile);
+
+router.put("/user/debitcard", profileServices.updateDebitCard);
+
+router.put("/user/address", profileServices.updateAddress);
+
+router.patch("/user/balance", profileServices.updateBalance);

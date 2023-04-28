@@ -1,3 +1,5 @@
+import jwt from "jsonwebtoken";
+
 export function jwtFilter(req, res, next) {
   const authHeader = req.headers["authorization"]
     ? req.headers["authorization"]
@@ -9,7 +11,7 @@ export function jwtFilter(req, res, next) {
   const authToken = authHeader.replace("Bearer ", "");
 
   try {
-    let authorized = jwt.verify(authToken, process.env.JWT_SECRET);
+    let authorized = jwt.verify(authToken, "superSecret");
     req.userDetails = authorized;
     next();
   } catch (err) {
