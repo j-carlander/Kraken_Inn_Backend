@@ -2,6 +2,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { dbConnection } from "../database/database.js";
+import { jwtFilter } from "../filter/jwtFilter.js";
 
 export const router = express.Router();
 
@@ -71,8 +72,10 @@ router.post("/auth/login", async (req, res) => {
 
   let token = jwt.sign(username, "superSecret");
 
-  res.send({ jwt: token });
+  res.send({ jwt: token, username: username });
 });
+
+router.use(jwtFilter);
 
 router.get("/food", async (req, res) => {
   let result = await dbConnection.collection("kraken_inn").find().toArray();
