@@ -2,16 +2,16 @@ import express from "express";
 
 import { dbConnection } from "../database/database.js";
 import { jwtFilter } from "../filter/jwtFilter.js";
-import userServices from "../services/userServices.js";
-import profileServices from "../services/profileServices.js";
+import userControllers from "../controller/userControllers.js";
+import profileControllers from "../controller/profileControllers.js";
 
 export const router = express.Router();
 
 /* Route to register a new user */
-router.post("/auth/register", userServices.register);
+router.post("/auth/register", userControllers.register);
 
 /* Route to log in a user */
-router.post("/auth/login", userServices.login);
+router.post("/auth/login", userControllers.login);
 
 /* Add JWT filter to all routes below this point */
 router.use(jwtFilter);
@@ -22,16 +22,16 @@ router.get("/food", async (req, res) => {
   res.send(result);
 });
 
-router.get("/user/debitcard", profileServices.getDebitCard);
+router.get("/user/debitcard", profileControllers.getDebitCard);
 
-router.get("/user/address", profileServices.getAddress);
+router.get("/user/address", profileControllers.getAddress);
 
-router.get("/user/balance", profileServices.getBalance);
+router.get("/user/balance", profileControllers.getBalance);
 
-router.get("/user/balance", profileServices.getProfile);
+router.get("/user/profile", profileControllers.getProfile);
 
-router.put("/user/debitcard", profileServices.updateDebitCard);
+router.put("/user/debitcard", profileControllers.updateDebitCard);
 
-router.put("/user/address", profileServices.updateAddress);
+router.put("/user/address", profileControllers.updateAddress);
 
-router.patch("/user/balance", profileServices.updateBalance);
+router.patch("/user/balance", profileControllers.updateBalance);

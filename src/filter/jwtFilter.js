@@ -12,7 +12,8 @@ export function jwtFilter(req, res, next) {
 
   try {
     let authorized = jwt.verify(authToken, "superSecret");
-    req.userDetails = authorized;
+
+    req.userDetails = { username: authorized };
     next();
   } catch (err) {
     console.log(err.name);
